@@ -69,6 +69,7 @@ input,select{font-family:inherit;font-size:inherit;color:inherit}
 @media(min-width:1024px){
   .main{grid-template-columns:minmax(0,1fr) 340px;align-items:start}
   .roster-area{position:sticky;top:140px;max-height:calc(100vh - 155px);overflow-y:auto}
+  .time-played-area{grid-column:1 / -1}
 }
 
 /* ── SHIFTS AREA ── */
@@ -83,13 +84,26 @@ input,select{font-family:inherit;font-size:inherit;color:inherit}
 .shift-card{background:var(--paper);border:1.5px solid var(--border);border-radius:12px;box-shadow:0 1px 0 rgba(0,0,0,.03),0 2px 5px rgba(0,0,0,.04);overflow:hidden;transition:border-color .2s}
 .shift-card.complete{border-color:var(--green);border-width:2px}
 .shift-card.incomplete{border-color:var(--border)}
-.shift-head{background:#fff;padding:8px 12px;display:flex;align-items:center;gap:10px;border-bottom:1.5px solid var(--border)}
+.shift-head{background:#fff;padding:8px 12px;display:flex;align-items:center;gap:8px;border-bottom:1.5px solid var(--border);flex-wrap:wrap}
 .shift-card.complete .shift-head{background:var(--green-lt);border-bottom-color:var(--green-mid)}
 .shift-title{font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink)}
 .shift-q-badge{font-family:'Oswald',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;background:var(--green);color:#fff;padding:2px 7px;border-radius:4px;text-transform:uppercase}
 .shift-status{margin-left:auto;font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;letter-spacing:.5px;padding:3px 8px;border-radius:4px;white-space:nowrap}
 .shift-status.complete{background:var(--green);color:#fff}
 .shift-status.incomplete{background:var(--warn-lt);color:var(--warn);border:1px solid rgba(184,90,0,.4)}
+
+/* shift copy/paste controls */
+.shift-btn{padding:4px 9px;font-size:10px;font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:1px;border:1.5px solid var(--border-dk);background:#fff;color:var(--ink);border-radius:4px;cursor:pointer;text-transform:uppercase;white-space:nowrap;transition:transform .05s,background .15s}
+.shift-btn:active{transform:scale(.94)}
+.shift-btn:hover{background:var(--bg)}
+.shift-btn-copy{border-color:var(--gold);color:var(--gold-dk)}
+.shift-btn-copy:hover{background:var(--gold-lt)}
+.shift-btn-copy.copied{background:var(--gold);color:#1a1a1a;border-color:var(--gold-dk)}
+.shift-btn-paste{border-color:var(--green-mid);color:var(--green)}
+.shift-btn-paste:not(:disabled):hover{background:var(--green-lt)}
+.shift-btn-paste:disabled{opacity:.35;cursor:not-allowed;border-color:var(--border);color:var(--muted)}
+.shift-btn-paste.ready{background:var(--green-lt);border-color:var(--green);color:var(--green-dk)}
+
 .shift-body{padding:9px 10px;display:flex;flex-direction:column;gap:7px}
 
 .pos-row{display:grid;grid-template-columns:48px 1fr;gap:8px;align-items:center;padding:5px 0;border-top:1px dashed var(--border)}
@@ -122,6 +136,31 @@ input,select{font-family:inherit;font-size:inherit;color:inherit}
 
 /* goalie slot full width */
 .pos-row.pos-goalie .slots .slot{flex:1 1 100%}
+
+/* ── MOBILE DROPDOWN SLOTS ── */
+.slot-mobile{flex:1 1 calc(50% - 3px);min-width:110px;min-height:38px;display:flex;align-items:stretch;border:1.5px solid var(--border-dk);border-radius:8px;background:#fff;overflow:hidden;position:relative}
+.slot-mobile.pos-attack{border-color:var(--atk-br);background:#fff5ec}
+.slot-mobile.pos-middie{border-color:var(--mid-br);background:#eff6fc}
+.slot-mobile.pos-defense{border-color:var(--def-br);background:#f6eefa}
+.slot-mobile.pos-goalie{border-color:var(--gk-br);background:#effaef;flex:1 1 100%}
+.slot-mobile.empty{background:rgba(255,255,255,.6);border-style:dashed}
+.slot-mobile-label{font-family:'Oswald',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;padding:0 8px;display:flex;align-items:center;background:rgba(0,0,0,.04);border-right:1px solid rgba(0,0,0,.1);min-width:34px;text-transform:uppercase;flex-shrink:0}
+.slot-mobile.pos-attack .slot-mobile-label{color:var(--atk)}
+.slot-mobile.pos-middie .slot-mobile-label{color:var(--mid)}
+.slot-mobile.pos-defense .slot-mobile-label{color:var(--def)}
+.slot-mobile.pos-goalie .slot-mobile-label{color:var(--gk)}
+.slot-mobile-select{flex:1;border:none;background:transparent;font-size:16px;font-weight:600;padding:8px 22px 8px 8px;color:var(--ink);font-family:inherit;min-width:0;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%23666' d='M0 0l5 6 5-6z'/></svg>");background-repeat:no-repeat;background-position:right 8px center}
+.slot-mobile-select:focus{outline:none;background-color:var(--gold-lt)}
+.slot-mobile.pos-attack .slot-mobile-select{color:var(--atk)}
+.slot-mobile.pos-middie .slot-mobile-select{color:var(--mid)}
+.slot-mobile.pos-defense .slot-mobile-select{color:var(--def)}
+.slot-mobile.pos-goalie .slot-mobile-select{color:var(--gk)}
+.slot-mobile-select.is-empty{color:var(--muted);font-style:italic;font-weight:500}
+
+/* disable grab cursors + touch-action in mobile mode */
+@media(max-width:767px){
+  .roster-pill{cursor:default;touch-action:auto}
+}
 
 /* ── ROSTER ── */
 .roster-area{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px}
@@ -159,14 +198,38 @@ input,select{font-family:inherit;font-size:inherit;color:inherit}
 .edit-mode .pill-del{display:flex}
 .edit-mode .roster-pill{cursor:default;touch-action:auto}
 
+/* ── TIME PLAYED ── */
+.time-played-area{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px}
+.tp-head{display:flex;align-items:baseline;gap:10px;border-bottom:1.5px solid var(--border);padding-bottom:8px;margin-bottom:8px;flex-wrap:wrap}
+.tp-head h3{font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--green)}
+.tp-sub{font-size:11px;color:var(--muted);font-family:'Oswald',sans-serif;letter-spacing:1px}
+.tp-table{display:grid;grid-template-columns:1fr;gap:3px}
+.tp-row{display:grid;grid-template-columns:1fr 44px 56px 72px;gap:8px;align-items:center;padding:7px 10px;border-radius:6px;font-size:14px;border:1px solid transparent}
+.tp-row.tp-header-row{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);padding:4px 10px 6px;margin-bottom:2px;background:transparent!important}
+.tp-row.tp-attack{background:var(--atk-bg);border-color:rgba(154,51,0,.12)}
+.tp-row.tp-middie{background:var(--mid-bg);border-color:rgba(31,92,153,.12)}
+.tp-row.tp-defense{background:var(--def-bg);border-color:rgba(90,42,122,.12)}
+.tp-name{font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tp-pos{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:1px;font-weight:700;text-align:center;padding:3px 4px;border-radius:3px;background:rgba(255,255,255,.55)}
+.tp-row.tp-attack .tp-pos{color:var(--atk)}
+.tp-row.tp-middie .tp-pos{color:var(--mid)}
+.tp-row.tp-defense .tp-pos{color:var(--def)}
+.tp-shifts,.tp-mins{font-family:'Oswald',sans-serif;font-weight:700;text-align:right;letter-spacing:.5px}
+.tp-shifts{color:var(--muted);font-size:13px}
+.tp-mins{color:var(--green-dk);font-size:15px}
+.tp-empty{color:var(--muted);font-style:italic;padding:10px;text-align:center;font-size:13px}
+.tp-totals{display:flex;gap:16px;flex-wrap:wrap;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+.tp-totals strong{color:var(--green-dk);font-size:13px;margin-left:4px}
+
 /* ── DRAG GHOST ── */
 .drag-ghost{pointer-events:none;box-shadow:0 10px 25px rgba(0,0,0,.3),0 4px 8px rgba(0,0,0,.15);transform:rotate(-2deg) scale(1.05);transition:none}
 body.is-dragging{cursor:grabbing}
 body.is-dragging *{cursor:grabbing!important;user-select:none!important}
 
 /* ── TOAST ── */
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:9000;font-size:14px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:9000;font-size:14px;max-width:calc(100vw - 40px);text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.warn{background:var(--warn);color:#fff}
 
 /* ── PRINT OVERLAY (preview modal) ── */
 .print-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9500;display:none;flex-direction:column;overflow-y:auto}
@@ -206,6 +269,18 @@ body.is-dragging *{cursor:grabbing!important;user-select:none!important}
 .print-name{font-weight:700;color:#000}
 .print-name.empty{color:#b00;font-style:italic;font-weight:400}
 .print-foot{margin-top:10px;text-align:center;font-size:7pt;color:#999;letter-spacing:1px;border-top:1px solid #ddd;padding-top:4px}
+
+/* print time-played table */
+.print-tp{margin-top:10px;border-top:2px solid #1a6b1a;padding-top:8px}
+.print-tp-title{font-family:'Arial Black',Arial,sans-serif;font-size:11pt;color:#1a6b1a;letter-spacing:1px;margin-bottom:4px}
+.print-tp-table{width:100%;border-collapse:collapse;font-size:9pt}
+.print-tp-table th,.print-tp-table td{text-align:left;padding:3px 6px;border-bottom:1px solid #e0e0e0}
+.print-tp-table th{font-family:'Arial Black',Arial,sans-serif;font-size:7.5pt;color:#666;letter-spacing:1px;text-transform:uppercase;background:#f5f2e6}
+.print-tp-table td.tp-c{text-align:center;width:60px;font-family:'Arial Black',Arial,sans-serif}
+.print-tp-table td.tp-m{text-align:right;width:80px;color:#0f4a0f;font-family:'Arial Black',Arial,sans-serif}
+.print-tp-table .tp-p-atk{color:#9a3300}
+.print-tp-table .tp-p-mid{color:#1f5c99}
+.print-tp-table .tp-p-def{color:#5a2a7a}
 
 @page{size:landscape;margin:0.3in}
 @media print{
@@ -281,6 +356,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 <main class="main">
   <section class="shifts-area" id="shifts-area"></section>
   <aside class="roster-area" id="roster-area"></aside>
+  <section class="time-played-area" id="time-played-area"></section>
 </main>
 
 <div class="print-overlay" id="print-overlay">
@@ -341,7 +417,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 /* ================================================================
    LOGO (base64 JPEG, embedded)
    ================================================================ */
-const LOGO_B64 = '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';
+const LOGO_B64 = '/9j/4AAQSkZJRgABAgAAAQABAAD/wAARCADEATQDACIAAREBAhEB/9sAQwAIBgYHBgUIBwcHCQkICgwUDQwLCwwZEhMPFB0aHx4dGhwcICQuJyAiLCMcHCg3KSwwMTQ0NB8nOT04MjwuMzQy/9sAQwEJCQkMCwwYDQ0YMiEcITIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIy/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMAAAERAhEAPwD3+iiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD//2Q==';
 document.getElementById('logo-img').src = 'data:image/jpeg;base64,' + LOGO_B64;
 
 /* ================================================================
@@ -352,11 +428,16 @@ const STORAGE_KEY = 'jrlions_gameday_v' + SCHEMA;
 const TEMPLATE_KEY = t => 'jrlions_gameday_tpl_v' + SCHEMA + '_' + t;
 const SYNC_CODE_KEY = 'jrlions_sync_code';
 
+/* Time played assumptions (per spec): 40-min game, ~6 min per shift, 8 shifts */
+const GAME_MINUTES  = 40;
+const SHIFT_MINUTES = 6;
+
+/* Mobile breakpoint — phones use dropdowns, tablets/desktop keep drag/drop */
+const MOBILE_MQ = window.matchMedia('(max-width: 767px)');
+let isMobile = MOBILE_MQ.matches;
+
 /* ================================================================
    FIREBASE CONFIG
-   Paste your project's firebaseConfig values here.
-   Leaving apiKey as "REPLACE_ME" disables cloud sync and the app
-   continues to work as local-only.
    ================================================================ */
 const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyDCe-JMzTG0Xg1CtXtYxHUvbgoX027gyhg",
@@ -367,7 +448,6 @@ const FIREBASE_CONFIG = {
   appId:             "1:558627353317:web:81e9dbd7ef13f215145a0c"
 };
 
-/* Returns true only when all required Firebase config values are present */
 function _firebaseConfigured(){
   return !!(
     FIREBASE_CONFIG &&
@@ -393,8 +473,8 @@ const SLOT_DEFS = {
 };
 const POSITIONS = ['attack','middie','defense','goalie'];
 const POS_LABEL = {attack:'ATK',middie:'MID',defense:'DEF',goalie:'GK'};
+const CAT_LABEL = {attack:'ATK', middie:'MID', defense:'DEF'};
 
-/* slot sub-position label: first letters, minus trailing digits */
 function slotSubLabel(k){ return k.replace(/\d+$/,''); }
 
 /* ================================================================
@@ -402,6 +482,9 @@ function slotSubLabel(k){ return k.replace(/\d+$/,''); }
    ================================================================ */
 let state;
 let editMode = false;
+
+/* shift clipboard — for copy/paste. { team, shift } or null. */
+let shiftClipboard = null;
 
 function makeEmptyShifts(team){
   const def = SLOT_DEFS[team];
@@ -477,13 +560,10 @@ function persist(){
 }
 
 /* ================================================================
-   CLOUD SYNC (Firestore)
+   CLOUD SYNC (Firestore) — unchanged
    ================================================================ */
 const cloud = {
-  ready: false,
-  enabled: false,
-  code: null,
-  db: null,
+  ready: false, enabled: false, code: null, db: null,
   stateDoc: null,
   tplDocs: {'3_4': null, '5_6': null},
   unsubState: null,
@@ -502,10 +582,7 @@ function setCloudStatus(cls, label){
   cloud.statusLabel = label;
   const el = document.getElementById('sync-btn');
   const lbl = document.getElementById('sync-label');
-  if (el){
-    el.classList.remove('ok','busy','err','off');
-    el.classList.add(cls);
-  }
+  if (el){ el.classList.remove('ok','busy','err','off'); el.classList.add(cls); }
   if (lbl) lbl.textContent = label;
   const st = document.getElementById('sync-status-text');
   if (st) st.textContent = label;
@@ -591,20 +668,14 @@ function cloudDetach(){
 }
 
 function cloudOnStateSnapshot(snap){
-  if (!snap.exists){
-    cloudWriteState(true);
-    return;
-  }
+  if (!snap.exists){ cloudWriteState(true); return; }
   const data = snap.data() || {};
   if (data.v !== SCHEMA || !data.state || !validateState(data.state)) return;
 
   const incomingJSON = JSON.stringify(data.state);
   if (incomingJSON === cloud.lastWroteStateJSON) return;
   const remoteStamp = typeof data.updatedAt === 'number' ? data.updatedAt : 0;
-  if (remoteStamp && remoteStamp < _localUpdatedAt) {
-    cloudWriteState(true);
-    return;
-  }
+  if (remoteStamp && remoteStamp < _localUpdatedAt) { cloudWriteState(true); return; }
 
   state = JSON.parse(incomingJSON);
   _localUpdatedAt = remoteStamp || Date.now();
@@ -620,42 +691,27 @@ function cloudOnTemplateSnapshot(team, snap){
   if (data.v !== SCHEMA || !Array.isArray(data.roster) || !Array.isArray(data.shifts) || data.shifts.length !== 8) return;
   cloud.tplCache[team] = { v:data.v, roster:data.roster, shifts:data.shifts };
   try {
-    localStorage.setItem(TEMPLATE_KEY(team), JSON.stringify({
-      v: data.v, roster: data.roster, shifts: data.shifts
-    }));
+    localStorage.setItem(TEMPLATE_KEY(team), JSON.stringify({ v:data.v, roster:data.roster, shifts:data.shifts }));
   } catch(e){}
 }
 
 function cloudScheduleStateWrite(){
   if (!cloud.enabled) return;
   clearTimeout(cloud.writeTimer);
-  cloud.writeTimer = setTimeout(() => {
-    cloud.writeTimer = null;
-    cloudWriteState(false);
-  }, 500);
+  cloud.writeTimer = setTimeout(() => { cloud.writeTimer = null; cloudWriteState(false); }, 500);
 }
 
 function cloudWriteState(immediate){
   if (!cloud.enabled || !cloud.stateDoc) return;
-  if (!cloud.ready){
-    setTimeout(() => cloudWriteState(immediate), 400);
-    return;
-  }
+  if (!cloud.ready){ setTimeout(() => cloudWriteState(immediate), 400); return; }
   const snapshot = JSON.parse(JSON.stringify(state));
   const payloadJSON = JSON.stringify(snapshot);
   if (payloadJSON === cloud.lastWroteStateJSON && !immediate) return;
   cloud.lastWroteStateJSON = payloadJSON;
   setCloudStatus('busy','Saving…');
-  cloud.stateDoc.set({
-    v: SCHEMA,
-    state: snapshot,
-    updatedAt: _localUpdatedAt || Date.now()
-  }).then(() => {
-    setCloudStatus('ok','Synced · ' + cloud.code);
-  }).catch(err => {
-    console.error('[sync] state write failed', err);
-    setCloudStatus('err','Sync error');
-  });
+  cloud.stateDoc.set({ v: SCHEMA, state: snapshot, updatedAt: _localUpdatedAt || Date.now() })
+    .then(() => setCloudStatus('ok','Synced · ' + cloud.code))
+    .catch(err => { console.error('[sync] state write failed', err); setCloudStatus('err','Sync error'); });
 }
 
 function cloudWriteTemplate(team, tpl){
@@ -720,6 +776,21 @@ function findPlayer(id){
   for (let i=0;i<r.length;i++) if (r[i].id === id) return r[i];
   return null;
 }
+
+/* duplicate-check helper: is playerId already assigned somewhere in this shift? */
+function isPlayerInShift(shiftIdx, playerId, excludeSlot){
+  if (!playerId) return false;
+  const shift = currentTeamState().shifts[shiftIdx];
+  const sd = currentSlotDef();
+  for (const p of POSITIONS){
+    for (const k of sd[p]){
+      if (excludeSlot && excludeSlot.pos === p && excludeSlot.slot === k) continue;
+      if (shift[p][k] === playerId) return true;
+    }
+  }
+  return false;
+}
+
 function setSlot(shiftIdx, pos, slotKey, playerId){
   currentTeamState().shifts[shiftIdx][pos][slotKey] = playerId;
 }
@@ -745,9 +816,7 @@ function removePlayerFromRoster(playerId){
   const sd = SLOT_DEFS[state.currentTeam];
   T.shifts.forEach(sh => {
     POSITIONS.forEach(p => {
-      sd[p].forEach(k => {
-        if (sh[p][k] === playerId) sh[p][k] = null;
-      });
+      sd[p].forEach(k => { if (sh[p][k] === playerId) sh[p][k] = null; });
     });
   });
 }
@@ -760,6 +829,45 @@ function switchTeam(team){
   if (team !== '3_4' && team !== '5_6') return;
   state.currentTeam = team;
   editMode = false;
+  /* slot structures differ between teams — clipboard can't be reused */
+  shiftClipboard = null;
+}
+
+/* ================================================================
+   COPY / PASTE SHIFT
+   ================================================================ */
+function copyShift(si){
+  const shift = currentTeamState().shifts[si];
+  shiftClipboard = {
+    team: state.currentTeam,
+    shift: JSON.parse(JSON.stringify(shift))
+  };
+  renderShifts();
+  toast('Shift ' + (si+1) + ' copied — tap Paste on another shift');
+}
+
+function pasteShift(si){
+  if (!shiftClipboard){ toast('Copy a shift first'); return; }
+  if (shiftClipboard.team !== state.currentTeam){ toast('Copy is from a different team'); return; }
+  /* validate clipboard structure matches current team's slot def */
+  const sd = currentSlotDef();
+  const ok = POSITIONS.every(p => {
+    if (!shiftClipboard.shift[p]) return false;
+    return sd[p].every(k => k in shiftClipboard.shift[p]);
+  });
+  if (!ok){ toast('Clipboard shape doesn\'t match this team'); return; }
+
+  const cleaned = JSON.parse(JSON.stringify(shiftClipboard.shift));
+  /* drop any player IDs no longer on the roster (e.g. deleted after copy) */
+  POSITIONS.forEach(p => {
+    sd[p].forEach(k => {
+      if (cleaned[p][k] && !findPlayer(cleaned[p][k])) cleaned[p][k] = null;
+    });
+  });
+  currentTeamState().shifts[si] = cleaned;
+  persist();
+  render();
+  toast('Pasted into Shift ' + (si+1));
 }
 
 /* ================================================================
@@ -777,8 +885,29 @@ function countTotal(){
   POSITIONS.forEach(p => n += sd[p].length);
   return n;
 }
-function isShiftComplete(shift){
-  return countFilled(shift) === countTotal();
+function isShiftComplete(shift){ return countFilled(shift) === countTotal(); }
+
+/* ================================================================
+   TIME PLAYED
+   ================================================================ */
+function calculateTimePlayed(){
+  const T = currentTeamState();
+  const counts = {};
+  T.roster.forEach(p => counts[p.id] = 0);
+  const sd = currentSlotDef();
+  T.shifts.forEach(shift => {
+    const seen = new Set();
+    POSITIONS.forEach(p => {
+      sd[p].forEach(k => {
+        const pid = shift[p][k];
+        if (pid && !seen.has(pid)){
+          seen.add(pid);
+          if (counts[pid] !== undefined) counts[pid]++;
+        }
+      });
+    });
+  });
+  return counts;
 }
 
 /* ================================================================
@@ -797,6 +926,7 @@ function render(){
   renderMeta();
   renderShifts();
   renderRoster();
+  renderTimePlayed();
 }
 
 function renderTabs(){
@@ -816,6 +946,7 @@ function renderMeta(){
 function renderShifts(){
   const sd = currentSlotDef();
   const shifts = currentTeamState().shifts;
+  const canPaste = !!(shiftClipboard && shiftClipboard.team === state.currentTeam);
   let html = '';
   for (let si=0; si<8; si++){
     const shift = shifts[si];
@@ -829,6 +960,8 @@ function renderShifts(){
     html += '<div class="shift-head">';
     html += '<span class="shift-q-badge">Q' + q + '</span>';
     html += '<span class="shift-title">Shift ' + sh + '</span>';
+    html += '<button class="shift-btn shift-btn-copy" data-action="copy-shift" data-shift="' + si + '" title="Copy this shift">Copy</button>';
+    html += '<button class="shift-btn shift-btn-paste' + (canPaste ? ' ready' : '') + '" data-action="paste-shift" data-shift="' + si + '"' + (canPaste ? '' : ' disabled') + ' title="Paste copied shift here">Paste</button>';
     html += '<span class="shift-status ' + (complete ? 'complete' : 'incomplete') + '">' +
             (complete ? '✓ COMPLETE' : filled + '/' + total) + '</span>';
     html += '</div>';
@@ -846,12 +979,15 @@ function renderPosRow(si, pos, slotKeys, slotData){
   html += '<div class="pos-label">' + POS_LABEL[pos] + '</div>';
   html += '<div class="slots">';
   slotKeys.forEach(k => {
-    html += renderSlot(si, pos, k, slotData[k]);
+    html += isMobile
+      ? renderSlotMobile(si, pos, k, slotData[k])
+      : renderSlot(si, pos, k, slotData[k]);
   });
   html += '</div></div>';
   return html;
 }
 
+/* ── DESKTOP slot (drag/drop) ── */
 function renderSlot(si, pos, slotKey, playerId){
   const sub = slotSubLabel(slotKey);
   const showSub = sub !== POS_LABEL[pos];
@@ -870,6 +1006,43 @@ function renderSlot(si, pos, slotKey, playerId){
          '<span class="chip-name">' + esc(name) + '</span>' +
          '<button class="chip-x" data-action="remove-slot" data-shift="' + si + '" data-pos="' + pos + '" data-slot="' + slotKey + '" aria-label="Remove">×</button>' +
          '</div></div>';
+}
+
+/* ── MOBILE slot (dropdown) ── */
+function renderSlotMobile(si, pos, slotKey, playerId){
+  const sub = slotSubLabel(slotKey);
+  const labelText = (pos === 'goalie') ? 'GK' : sub;
+  const roster = currentTeamState().roster;
+
+  /* group roster by category, alphabetical within group */
+  const byCat = { attack:[], middie:[], defense:[] };
+  roster.forEach(p => { (byCat[p.category] || byCat.middie).push(p); });
+  for (const c in byCat) byCat[c].sort((a,b) => a.name.localeCompare(b.name));
+
+  let opts = '<option value="">— empty —</option>';
+  ['attack','middie','defense'].forEach(cat => {
+    if (byCat[cat].length === 0) return;
+    opts += '<optgroup label="' + CAT_LABEL[cat] + '">';
+    byCat[cat].forEach(p => {
+      opts += '<option value="' + esc(p.id) + '"' + (playerId === p.id ? ' selected' : '') + '>' + esc(p.name) + '</option>';
+    });
+    opts += '</optgroup>';
+  });
+
+  /* orphan id (player deleted after assignment) — surface it as missing */
+  if (playerId && !findPlayer(playerId)){
+    opts += '<option value="' + esc(playerId) + '" selected>(missing)</option>';
+  }
+
+  const emptyCls = playerId ? '' : ' is-empty';
+  const wrapEmpty = playerId ? '' : ' empty';
+
+  return '<div class="slot-mobile pos-' + pos + wrapEmpty + '">' +
+         '<span class="slot-mobile-label">' + labelText + '</span>' +
+         '<select class="slot-mobile-select' + emptyCls + '" data-action="select-slot" data-shift="' + si + '" data-pos="' + pos + '" data-slot="' + slotKey + '">' +
+         opts +
+         '</select>' +
+         '</div>';
 }
 
 function renderRoster(){
@@ -914,7 +1087,7 @@ function renderRoster(){
     html += '</div>';
     html += '<div class="roster-pills">';
     if (list.length === 0){
-      html += '<span class="roster-empty">Drag players here or add above</span>';
+      html += '<span class="roster-empty">' + (isMobile ? 'Add players above' : 'Drag players here or add above') + '</span>';
     } else {
       list.forEach(p => {
         html += '<div class="roster-pill" data-drag-type="roster" data-player="' + p.id + '">' +
@@ -937,7 +1110,7 @@ function renderRoster(){
     if (addPlayer(name, cat)){
       nameInput.value = '';
       persist();
-      renderRoster();
+      render();                /* full render so shifts' mobile dropdowns + time-played refresh */
       setTimeout(() => document.getElementById('add-name')?.focus(), 0);
     }
   };
@@ -960,13 +1133,67 @@ function renderRoster(){
   };
 }
 
+function renderTimePlayed(){
+  const T = currentTeamState();
+  const container = document.getElementById('time-played-area');
+  if (!container) return;
+  const counts = calculateTimePlayed();
+
+  /* Sort: most minutes first, then alphabetical */
+  const players = T.roster.slice().sort((a,b) => {
+    const diff = (counts[b.id]||0) - (counts[a.id]||0);
+    if (diff !== 0) return diff;
+    return a.name.localeCompare(b.name);
+  });
+
+  let html = '';
+  html += '<div class="tp-head">';
+  html += '<h3>Time Played</h3>';
+  html += '<span class="tp-sub">' + GAME_MINUTES + ' min game · ~' + SHIFT_MINUTES + ' min/shift · 8 shifts</span>';
+  html += '</div>';
+
+  if (players.length === 0){
+    html += '<div class="tp-empty">Add players to the roster to see time played breakdown.</div>';
+    container.innerHTML = html;
+    return;
+  }
+
+  html += '<div class="tp-table">';
+  html += '<div class="tp-row tp-header-row"><span>Player</span><span>Pos</span><span>Shifts</span><span>Minutes</span></div>';
+  let totalShifts = 0;
+  let totalMins = 0;
+  players.forEach(p => {
+    const shifts = counts[p.id] || 0;
+    const mins = shifts * SHIFT_MINUTES;
+    totalShifts += shifts;
+    totalMins   += mins;
+    html += '<div class="tp-row tp-' + p.category + '">';
+    html += '<span class="tp-name">' + esc(p.name) + '</span>';
+    html += '<span class="tp-pos">' + CAT_LABEL[p.category] + '</span>';
+    html += '<span class="tp-shifts">' + shifts + '/8</span>';
+    html += '<span class="tp-mins">' + mins + ' min</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  const avgMins = players.length ? (totalMins / players.length) : 0;
+  html += '<div class="tp-totals">';
+  html += '<span>Roster: <strong>' + players.length + '</strong></span>';
+  html += '<span>Player-shifts: <strong>' + totalShifts + '</strong></span>';
+  html += '<span>Avg: <strong>' + avgMins.toFixed(1) + ' min</strong></span>';
+  html += '</div>';
+
+  container.innerHTML = html;
+}
+
 /* ================================================================
-   DRAG & DROP
+   DRAG & DROP (desktop only)
    ================================================================ */
 let drag = null;
 
 function startDrag(e, source, sourceEl){
   if (drag) return;
+  if (isMobile) return;                       /* mobile uses dropdowns */
   if (e.pointerType === 'mouse' && e.button !== 0) return;
   if (editMode && source.type === 'roster') return;
 
@@ -1071,12 +1298,25 @@ function handleDrop(source, zone){
     const pos  = zone.dataset.pos;
     const slot = zone.dataset.slot;
     if (source.type === 'roster'){
+      /* duplicate guard: player can't be placed twice in same shift */
+      if (isPlayerInShift(si, source.playerId, {pos, slot})){
+        const p = findPlayer(source.playerId);
+        toastWarn((p ? p.name : 'Player') + ' is already in Shift ' + (si+1));
+        return false;
+      }
       setSlot(si, pos, slot, source.playerId);
       return true;
     }
     if (source.type === 'slot'){
       const srcPid = currentTeamState().shifts[source.shift][source.pos][source.slot];
       if (!srcPid) return false;
+      /* cross-shift move: duplicate check against target shift (exclude target slot) */
+      if (si !== source.shift && isPlayerInShift(si, srcPid, {pos, slot})){
+        const p = findPlayer(srcPid);
+        toastWarn((p ? p.name : 'Player') + ' is already in Shift ' + (si+1));
+        return false;
+      }
+      /* same-shift moves: dup check unnecessary — player was already unique, move preserves that */
       clearSlot(source.shift, source.pos, source.slot);
       setSlot(si, pos, slot, srcPid);
       return true;
@@ -1117,7 +1357,9 @@ function stopEdgeScroll(){
    EVENT DELEGATION
    ================================================================ */
 document.addEventListener('pointerdown', (e) => {
+  if (isMobile) return;   /* no drag on mobile */
   if (e.target.closest('.chip-x') || e.target.closest('.pill-del')) return;
+  if (e.target.closest('[data-action]')) return;  /* let buttons click */
 
   const rp = e.target.closest('.roster-pill');
   if (rp){
@@ -1138,7 +1380,9 @@ document.addEventListener('pointermove',  onPointerMove, {passive:false});
 document.addEventListener('pointerup',    onPointerUp);
 document.addEventListener('pointercancel', onPointerCancel);
 
+/* click-based actions */
 document.addEventListener('click', (e) => {
+  /* chip remove (desktop) */
   const cx = e.target.closest('.chip-x');
   if (cx){
     e.stopPropagation();
@@ -1150,6 +1394,7 @@ document.addEventListener('click', (e) => {
     render();
     return;
   }
+  /* roster delete in edit mode */
   const pd = e.target.closest('.pill-del');
   if (pd){
     e.stopPropagation();
@@ -1161,7 +1406,45 @@ document.addEventListener('click', (e) => {
       persist();
       render();
     }
+    return;
   }
+  /* copy shift */
+  const cb = e.target.closest('[data-action="copy-shift"]');
+  if (cb){
+    e.stopPropagation();
+    copyShift(parseInt(cb.dataset.shift, 10));
+    return;
+  }
+  /* paste shift */
+  const pb = e.target.closest('[data-action="paste-shift"]');
+  if (pb){
+    e.stopPropagation();
+    if (pb.disabled) return;
+    pasteShift(parseInt(pb.dataset.shift, 10));
+    return;
+  }
+});
+
+/* mobile dropdown change */
+document.addEventListener('change', (e) => {
+  const sel = e.target.closest('[data-action="select-slot"]');
+  if (!sel) return;
+  const si   = parseInt(sel.dataset.shift, 10);
+  const pos  = sel.dataset.pos;
+  const slot = sel.dataset.slot;
+  const newPid = sel.value || null;
+
+  /* duplicate guard */
+  if (newPid && isPlayerInShift(si, newPid, {pos, slot})){
+    const p = findPlayer(newPid);
+    toastWarn((p ? p.name : 'Player') + ' is already in this shift');
+    render();                           /* revert: rebuild select from state */
+    return;
+  }
+
+  setSlot(si, pos, slot, newPid);
+  persist();
+  render();
 });
 
 document.addEventListener('contextmenu', (e) => {
@@ -1246,6 +1529,22 @@ document.getElementById('close-print-btn').addEventListener('click', () => {
 });
 
 /* ================================================================
+   MOBILE BREAKPOINT LISTENER
+   Re-render on viewport crossover so slots switch between
+   drag/drop (desktop) and dropdown (mobile).
+   ================================================================ */
+function _onMQChange(e){
+  const nowMobile = e.matches;
+  if (nowMobile === isMobile) return;
+  isMobile = nowMobile;
+  if (drag) cleanupDrag();
+  renderShifts();
+  renderRoster();
+}
+if (MOBILE_MQ.addEventListener) MOBILE_MQ.addEventListener('change', _onMQChange);
+else if (MOBILE_MQ.addListener)  MOBILE_MQ.addListener(_onMQChange);
+
+/* ================================================================
    EXPORT / PRINT
    ================================================================ */
 function fmtDateNice(iso){
@@ -1300,6 +1599,35 @@ function buildPrintHTML(){
     html += '</div>';
   }
   html += '</div>';
+
+  /* ── Time played summary for print ── */
+  const counts = calculateTimePlayed();
+  if (T.roster.length > 0){
+    const rows = T.roster.slice().sort((a,b) => {
+      const d = (counts[b.id]||0) - (counts[a.id]||0);
+      if (d !== 0) return d;
+      return a.name.localeCompare(b.name);
+    });
+    html += '<div class="print-tp">';
+    html += '<div class="print-tp-title">Time Played · ' + GAME_MINUTES + ' min game · ~' + SHIFT_MINUTES + ' min/shift</div>';
+    html += '<table class="print-tp-table">';
+    html += '<thead><tr><th>Player</th><th>Pos</th><th style="text-align:center">Shifts</th><th style="text-align:right">Minutes</th></tr></thead>';
+    html += '<tbody>';
+    rows.forEach(p => {
+      const s = counts[p.id] || 0;
+      const m = s * SHIFT_MINUTES;
+      const posCls = p.category === 'attack' ? 'tp-p-atk' : p.category === 'middie' ? 'tp-p-mid' : 'tp-p-def';
+      html += '<tr>';
+      html += '<td>' + esc(p.name) + '</td>';
+      html += '<td class="' + posCls + '"><strong>' + CAT_LABEL[p.category] + '</strong></td>';
+      html += '<td class="tp-c">' + s + '/8</td>';
+      html += '<td class="tp-m">' + m + ' min</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    html += '</div>';
+  }
+
   html += '<div class="print-foot">Jr. Lions Girls Lacrosse · Gameday Shift Builder · Generated ' +
           new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) + '</div>';
   html += '</div>';
@@ -1351,9 +1679,17 @@ let toastTimer = null;
 function toast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
+  t.classList.remove('warn');
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+function toastWarn(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('warn','show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.classList.remove('show'); t.classList.remove('warn'); }, 2200);
 }
 
 /* ================================================================
