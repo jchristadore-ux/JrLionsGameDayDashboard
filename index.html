@@ -240,7 +240,7 @@ body.is-dragging *{cursor:grabbing!important;user-select:none!important}
 .print-overlay-bar h2{flex:1;font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;letter-spacing:1px}
 .print-overlay-hint{background:#fff3c6;padding:8px 14px;font-size:13px;color:#5a4800;border-bottom:1px solid var(--border);text-align:center}
 .print-overlay-body{flex:1;background:#ddd;padding:20px;display:flex;justify-content:center}
-.print-overlay-body .print-sheet{background:#fff;color:#000;padding:20px;box-shadow:0 4px 16px rgba(0,0,0,.2);max-width:1100px;width:100%}
+.print-overlay-body .print-sheet{background:#fff;color:#000;padding:20px;box-shadow:0 4px 16px rgba(0,0,0,.2);max-width:1300px;width:100%}
 
 /* ── PRINT VIEW & @PRINT RULES ── */
 #print-view{display:none}
@@ -255,34 +255,33 @@ body.is-dragging *{cursor:grabbing!important;user-select:none!important}
 .print-hdr-meta strong{color:#000;font-size:12pt}
 .print-hdr-team{background:#c89c2a;color:#000;padding:6px 12px;border-radius:6px;font-family:'Arial Black',Arial,sans-serif;font-size:14pt;font-weight:900;letter-spacing:1px;white-space:nowrap}
 
-.print-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.print-shift{border:1.5px solid #1a6b1a;border-radius:4px;padding:6px 8px;background:#fff;break-inside:avoid}
-.print-shift-head{font-family:'Arial Black',Arial,sans-serif;font-size:10pt;color:#fff;background:#1a6b1a;padding:3px 6px;margin:-6px -8px 5px -8px;border-radius:2px 2px 0 0;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
-.print-shift-head .print-shift-num{flex:1}
-.print-shift-head .print-q{background:#c89c2a;color:#000;padding:1px 5px;border-radius:3px;font-size:8pt;letter-spacing:1px}
-.print-pos{font-size:9pt;line-height:1.35;margin:2px 0;padding:1px 0;border-top:1px solid #eaeaea}
-.print-pos:first-of-type{border-top:none}
-.print-pos-label{font-family:'Arial Black',Arial,sans-serif;font-size:7pt;letter-spacing:1.5px;color:#888;text-transform:uppercase;margin-right:4px}
-.print-pos.atk .print-pos-label{color:#9a3300}
-.print-pos.mid .print-pos-label{color:#1f5c99}
-.print-pos.def .print-pos-label{color:#5a2a7a}
-.print-pos.gk  .print-pos-label{color:#1a6b1a}
-.print-sub{font-size:7pt;color:#666;font-weight:700;letter-spacing:.5px;display:inline-block;min-width:18px}
-.print-name{font-weight:700;color:#000}
-.print-name.empty{color:#b00;font-style:italic;font-weight:400}
-.print-foot{margin-top:10px;text-align:center;font-size:7pt;color:#999;letter-spacing:1px;border-top:1px solid #ddd;padding-top:4px}
+.print-foot{margin-top:8px;text-align:center;font-size:7pt;color:#999;letter-spacing:1px;border-top:1px solid #ddd;padding-top:4px}
 
-/* print time-played table */
-.print-tp{margin-top:10px;border-top:2px solid #1a6b1a;padding-top:8px}
-.print-tp-title{font-family:'Arial Black',Arial,sans-serif;font-size:11pt;color:#1a6b1a;letter-spacing:1px;margin-bottom:4px}
-.print-tp-table{width:100%;border-collapse:collapse;font-size:9pt}
-.print-tp-table th,.print-tp-table td{text-align:left;padding:3px 6px;border-bottom:1px solid #e0e0e0}
-.print-tp-table th{font-family:'Arial Black',Arial,sans-serif;font-size:7.5pt;color:#666;letter-spacing:1px;text-transform:uppercase;background:#f5f2e6}
-.print-tp-table td.tp-c{text-align:center;width:60px;font-family:'Arial Black',Arial,sans-serif}
-.print-tp-table td.tp-m{text-align:right;width:80px;color:#0f4a0f;font-family:'Arial Black',Arial,sans-serif}
-.print-tp-table .tp-p-atk{color:#9a3300}
-.print-tp-table .tp-p-mid{color:#1f5c99}
-.print-tp-table .tp-p-def{color:#5a2a7a}
+/* ── rotation sheet — player-row × shift-column table ── */
+.rot-table{width:100%;border-collapse:collapse;font-size:10pt;table-layout:fixed;margin-top:8px}
+.rot-table col.rot-name-col{width:110px}
+.rot-head-row th{background:#1a6b1a;color:#fff;font-family:'Arial Black',Arial,sans-serif;font-size:8.5pt;letter-spacing:.5px;padding:5px 3px;border:1px solid #155515;text-align:center;line-height:1.3;vertical-align:middle}
+.rot-head-row th.rot-name-col{text-align:left;padding-left:6px;border-right:3px solid rgba(255,255,255,.35)}
+.rot-shift-badge{background:#c89c2a;color:#000;padding:1px 4px;border-radius:2px;font-size:7pt;font-weight:900;letter-spacing:1px}
+.rot-shift-meta{display:block;font-size:7pt;font-weight:400;letter-spacing:0;opacity:.8;margin-top:2px}
+.rot-cat-row td{background:#1a6b1a;color:#fff;font-family:'Arial Black',Arial,sans-serif;font-size:7.5pt;letter-spacing:2px;text-transform:uppercase;padding:3px 6px;border:1px solid #155515}
+.rot-row td{border:1px solid #d8d8d8;padding:5px 3px;vertical-align:middle}
+.rot-row:nth-child(even) td{background:#f7f7f7}
+.rot-name{font-weight:700;font-size:10pt;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-right:3px solid #aaa!important;background:#fff!important;padding-left:5px!important}
+.rot-cell{text-align:center;font-weight:700;font-size:9.5pt;white-space:nowrap}
+/* change-type highlights — !important overrides the even-row background */
+.rot-enter{background:#c6f0c6!important;color:#0a5e0a}
+.rot-out{background:#fcc!important;color:#8a0000}
+.rot-change{background:#fef9b0!important;color:#5a4800}
+.rot-bench{color:#bbb!important;font-weight:400;font-style:italic}
+.rot-same{color:#111}
+/* legend */
+.rot-legend{margin-top:7px;font-size:8pt;display:flex;gap:14px;align-items:center;flex-wrap:wrap;color:#444}
+.rot-leg-item{display:inline-flex;align-items:center;gap:4px}
+.rot-leg-swatch{display:inline-block;width:13px;height:13px;border-radius:2px;border:1px solid rgba(0,0,0,.12);flex-shrink:0}
+.rot-leg-enter{background:#c6f0c6}
+.rot-leg-out{background:#fcc}
+.rot-leg-change{background:#fef9b0}
 
 @page{size:landscape;margin:0.3in}
 @media print{
@@ -291,7 +290,8 @@ body.is-dragging *{cursor:grabbing!important;user-select:none!important}
   #print-view{display:block!important}
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
   .print-sheet{padding:0;box-shadow:none}
-  .print-grid{grid-template-columns:repeat(4,1fr);gap:5px}
+  /* rotation table fills the page — let font scale naturally */
+  .rot-table{font-size:9.5pt}
 }
 
 /* hide number input spinners */
@@ -1688,13 +1688,48 @@ function fmtDateNice(iso){
 }
 
 function buildPrintHTML(){
-  const T = currentTeamState();
-  const team = state.currentTeam;
-  const sd = SLOT_DEFS[team];
+  const T         = currentTeamState();
+  const team      = state.currentTeam;
+  const sd        = SLOT_DEFS[team];
   const teamLabel = team === '3_4' ? '3 / 4' : '5 / 6';
+  const isTournament = (T.gameType || 'standard') === 'tournament';
+  const printCfg  = getShiftConfig(T.gameType || 'standard', T.tournamentShiftMode || 'short');
+  const shifts    = T.shifts;
+  const shiftCount = shifts.length;
 
-  let html = '';
-  html += '<div class="print-sheet">';
+  /* Returns { pos, slotKey } for a player in a shift, or null if benched */
+  function playerSlot(shift, playerId){
+    for (const pos of POSITIONS){
+      for (const k of sd[pos]){
+        if (shift[pos][k] === playerId) return { pos, slotKey: k };
+      }
+    }
+    return null;
+  }
+
+  /* Cell text: "ATK A1", "MID M2", "DEF D1", "GK", or "—" when benched */
+  function cellLabel(slot){
+    if (!slot) return '—';
+    if (slot.pos === 'goalie') return 'GK';
+    return POS_LABEL[slot.pos] + ' ' + slot.slotKey;
+  }
+
+  /*
+   * Compare prev and curr slot to choose a highlight class.
+   * prev === undefined means the first shift column — no comparison, no highlight.
+   */
+  function changeCls(prev, curr){
+    if (prev === undefined) return curr ? 'rot-same' : 'rot-bench';
+    if (!prev && !curr)  return 'rot-bench';
+    if (!prev &&  curr)  return 'rot-enter';
+    if ( prev && !curr)  return 'rot-out';
+    if (prev.pos !== curr.pos || prev.slotKey !== curr.slotKey) return 'rot-change';
+    return 'rot-same';
+  }
+
+  let html = '<div class="print-sheet">';
+
+  /* ── Header ── */
   html += '<div class="print-hdr">';
   html += '<img src="' + document.getElementById('logo-img').src + '" class="print-hdr-logo" alt="">';
   html += '<div class="print-hdr-info">';
@@ -1702,103 +1737,77 @@ function buildPrintHTML(){
   html += '<div class="print-hdr-sub">Gameday Shift Rotation</div>';
   html += '<div class="print-hdr-meta">';
   html += '<div><span>Opponent:</span><strong>' + esc(T.opponent || '—') + '</strong></div>';
-  html += '<div><span>Date:</span><strong>' + esc(fmtDateNice(T.date)) + '</strong></div>';
+  html += '<div><span>Date:</span><strong>'     + esc(fmtDateNice(T.date))    + '</strong></div>';
+  const typeLabel = isTournament
+    ? 'Tournament · ' + shiftCount + ' shifts · ' + fmtShiftDur(printCfg.shiftMinutes) + '/shift'
+    : 'Standard · ' + shiftCount + ' shifts';
+  html += '<div><span>Format:</span><strong>' + typeLabel + '</strong></div>';
   html += '</div></div>';
   html += '<div class="print-hdr-team">' + teamLabel + '</div>';
   html += '</div>';
 
-  /* Tournament mode alters how shifts are labeled and how time-played minutes are calculated */
-  /* Tournament mode alters shift labels and time-played calculations for both short and long modes */
-  const isTournament = (T.gameType || 'standard') === 'tournament';
-  const printCfg = getShiftConfig(T.gameType || 'standard', T.tournamentShiftMode || 'short');
+  /* ── Rotation table: player rows × shift columns ── */
+  html += '<table class="rot-table">';
 
-  html += '<div class="print-grid">';
-  for (let si=0; si<T.shifts.length; si++){
-    const shift = T.shifts[si];
-    const printBadge    = isTournament ? 'T'        : 'Q' + (Math.floor(si/2) + 1);
-    const printShiftNum = isTournament ? 'Shift ' + (si+1) : 'Shift ' + ((si % 2) + 1);
-    html += '<div class="print-shift">';
-    html += '<div class="print-shift-head">';
-    html += '<span class="print-q">'         + printBadge    + '</span>';
-    html += '<span class="print-shift-num">' + printShiftNum + '</span>';
-    html += '</div>';
-    html += '<div class="print-pos atk"><span class="print-pos-label">ATK</span>';
-    html += printPosInline(shift.attack, sd.attack, team==='5_6' ? ['HA1','HA2','LA1','LA2'] : null);
-    html += '</div>';
-    html += '<div class="print-pos mid"><span class="print-pos-label">MID</span>';
-    html += printPosInline(shift.middie, sd.middie, null);
-    html += '</div>';
-    html += '<div class="print-pos def"><span class="print-pos-label">DEF</span>';
-    html += printPosInline(shift.defense, sd.defense, team==='5_6' ? ['HD1','HD2','LD1','LD2'] : null);
-    html += '</div>';
-    html += '<div class="print-pos gk"><span class="print-pos-label">GK</span>';
-    html += printPosInline(shift.goalie, sd.goalie, null);
-    html += '</div>';
-    html += '</div>';
+  /* Explicit column widths so the table fills the page predictably */
+  html += '<colgroup><col class="rot-name-col">';
+  for (let si = 0; si < shiftCount; si++) html += '<col class="rot-shift-col">';
+  html += '</colgroup>';
+
+  /* Header row */
+  html += '<thead><tr class="rot-head-row">';
+  html += '<th class="rot-name-col">Player</th>';
+  for (let si = 0; si < shiftCount; si++){
+    const badge      = isTournament ? 'T' : 'Q' + (Math.floor(si/2) + 1);
+    const shiftLabel = isTournament ? 'Shift ' + (si+1) : 'Shift ' + ((si%2) + 1);
+    html += '<th class="rot-shift-col">';
+    html += '<span class="rot-shift-badge">' + esc(badge) + '</span> ' + shiftLabel;
+    html += '<span class="rot-shift-meta">' + fmtShiftDur(printCfg.shiftMinutes) + '</span>';
+    html += '</th>';
   }
-  html += '</div>';
+  html += '</tr></thead>';
 
-  const counts = calculateTimePlayed();
-  if (T.roster.length > 0){
-    const rows = T.roster.slice().sort((a,b) => {
-      const d = (counts[b.id]||0) - (counts[a.id]||0);
-      if (d !== 0) return d;
-      return a.name.localeCompare(b.name);
-    });
-    html += '<div class="print-tp">';
-    html += '<div class="print-tp-title">Time Played · ' + printCfg.totalGameTime + ' min game · ~' + fmtShiftDur(printCfg.shiftMinutes) + '/shift</div>';
-    html += '<table class="print-tp-table">';
-    html += '<thead><tr><th>Player</th><th>Pos</th><th style="text-align:center">Shifts</th><th style="text-align:right">Minutes</th></tr></thead>';
-    html += '<tbody>';
-    rows.forEach(p => {
-      const s = counts[p.id] || 0;
-      const m = Math.round(s * printCfg.shiftMinutes * 10) / 10;
-      const posCls = p.category === 'attack' ? 'tp-p-atk' : p.category === 'middie' ? 'tp-p-mid' : 'tp-p-def';
-      html += '<tr>';
-      html += '<td>' + esc(p.name) + '</td>';
-      html += '<td class="' + posCls + '"><strong>' + CAT_LABEL[p.category] + '</strong></td>';
-      html += '<td class="tp-c">' + s + '/' + printCfg.shiftCount + '</td>';
-      html += '<td class="tp-m">' + (Number.isInteger(m) ? m : m.toFixed(1)) + ' min</td>';
+  /* Body — one section per position category */
+  html += '<tbody>';
+  const CAT_ORDER = ['attack', 'middie', 'defense'];
+  const CAT_HDR   = { attack: 'Attack', middie: 'Midfield', defense: 'Defense' };
+
+  CAT_ORDER.forEach(cat => {
+    const catPlayers = T.roster
+      .filter(p => p.category === cat)
+      .sort((a, b) => a.name.localeCompare(b.name));
+    if (!catPlayers.length) return;
+
+    html += '<tr class="rot-cat-row"><td colspan="' + (shiftCount + 1) + '">' + CAT_HDR[cat] + '</td></tr>';
+
+    catPlayers.forEach(player => {
+      html += '<tr class="rot-row">';
+      html += '<td class="rot-name">' + esc(player.name) + '</td>';
+
+      let prevSlot = undefined; // undefined signals "first column — no prior shift to compare"
+      for (let si = 0; si < shiftCount; si++){
+        const currSlot = playerSlot(shifts[si], player.id);
+        const cls = changeCls(prevSlot, currSlot);
+        html += '<td class="rot-cell ' + cls + '">' + esc(cellLabel(currSlot)) + '</td>';
+        prevSlot = currSlot;
+      }
       html += '</tr>';
     });
-    html += '</tbody></table>';
-    html += '</div>';
-  }
+  });
+  html += '</tbody></table>';
 
+  /* ── Legend ── */
+  html += '<div class="rot-legend">';
+  html += '<span class="rot-leg-item"><span class="rot-leg-swatch rot-leg-enter"></span>Entering field</span>';
+  html += '<span class="rot-leg-item"><span class="rot-leg-swatch rot-leg-out"></span>Subbing out</span>';
+  html += '<span class="rot-leg-item"><span class="rot-leg-swatch rot-leg-change"></span>Position change</span>';
+  html += '</div>';
+
+  /* ── Footer ── */
   html += '<div class="print-foot">Jr. Lions Girls Lacrosse · Gameday Shift Builder · Generated ' +
           new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) + '</div>';
   html += '</div>';
   return html;
-}
-
-function printPosInline(slotData, keys, groupedKeys){
-  if (groupedKeys){
-    const groups = {};
-    keys.forEach(k => {
-      const pref = slotSubLabel(k);
-      if (!groups[pref]) groups[pref] = [];
-      const pid = slotData[k];
-      const name = pid ? (findPlayer(pid) ? findPlayer(pid).name : '(?)') : '';
-      groups[pref].push(name);
-    });
-    let out = '';
-    Object.keys(groups).forEach(pref => {
-      out += '<span class="print-sub">' + pref + '</span>';
-      out += groups[pref].map(n => n
-        ? '<span class="print-name">' + esc(n) + '</span>'
-        : '<span class="print-name empty">—</span>'
-      ).join(', ');
-      out += '&nbsp;&nbsp;';
-    });
-    return out.trim();
-  }
-  return keys.map(k => {
-    const pid = slotData[k];
-    const name = pid ? (findPlayer(pid) ? findPlayer(pid).name : '(?)') : '';
-    return name
-      ? '<span class="print-name">' + esc(name) + '</span>'
-      : '<span class="print-name empty">—</span>';
-  }).join(', ');
 }
 
 function doExport(){
