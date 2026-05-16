@@ -88,6 +88,7 @@ input,select{font-family:inherit;font-size:inherit;color:inherit}
 .shift-head{background:#fff;padding:8px 12px;display:flex;align-items:center;gap:8px;border-bottom:1.5px solid var(--border);flex-wrap:wrap}
 .shift-card.complete .shift-head{background:var(--green-lt);border-bottom-color:var(--green-mid)}
 .shift-title{font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink)}
+.shift-dur{font-size:11px;font-weight:400;letter-spacing:.5px;color:var(--muted);text-transform:none}
 .shift-q-badge{font-family:'Oswald',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;background:var(--green);color:#fff;padding:2px 7px;border-radius:4px;text-transform:uppercase}
 .shift-status{margin-left:auto;font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;letter-spacing:.5px;padding:3px 8px;border-radius:4px;white-space:nowrap}
 .shift-status.complete{background:var(--green);color:#fff}
@@ -350,6 +351,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <option value="tournament">Tournament (25 min)</option>
     </select>
   </label>
+  <label class="field" id="shift-mode-field" style="flex:0 0 auto;min-width:0;display:none"><span>Shift Structure</span>
+    <select id="shift-mode-select">
+      <option value="short">Short Shifts (5 × 5 min)</option>
+      <option value="long">Long Shifts (3 × ~8:20 min)</option>
+    </select>
+  </label>
   <div class="actions">
     <button class="sync-badge off" id="sync-btn" title="Cross-device sync status" aria-label="Sync status">
       <span class="dot"></span><span id="sync-label">Sync</span>
@@ -436,22 +443,34 @@ const TEMPLATE_KEY = t => 'jrlions_gameday_tpl_v' + SCHEMA + '_' + t;
 const SYNC_CODE_KEY = 'jrlions_sync_code';
 
 /* Standard mode: 40-min game, ~6 min per shift, 8 shifts */
-const GAME_MINUTES  = 40;
-const SHIFT_MINUTES = 6;
+const GAME_MINUTES         = 40;
+const SHIFT_MINUTES        = 6;
 const STANDARD_SHIFT_COUNT = 8;
 
-/* Tournament mode: 25-min game, 5 min per shift, 5 shifts */
-const TOURNAMENT_GAME_MINUTES  = 25;
-const TOURNAMENT_SHIFT_MINUTES = 5;
-const TOURNAMENT_SHIFT_COUNT   = 5;
+/* Tournament mode: always 25-min total; shift count (and therefore length) varies by tournamentShiftMode */
+const TOURNAMENT_GAME_MINUTES = 25;
 
-/* Returns shift count for the given game type string */
-function shiftCountFor(gameType){ return gameType === 'tournament' ? TOURNAMENT_SHIFT_COUNT : STANDARD_SHIFT_COUNT; }
+/*
+ * Central timing model — every shift count and duration in the app derives from here.
+ *   gameType            'standard' | 'tournament'
+ *   tournamentShiftMode 'short' (5 shifts × 5 min) | 'long' (3 shifts × ~8:20 min)
+ *                       Ignored unless gameType === 'tournament'. Defaults to 'short'.
+ * Returns { totalGameTime, shiftCount, shiftMinutes }
+ */
+function getShiftConfig(gameType, tournamentShiftMode) {
+  if (gameType !== 'tournament') {
+    return { totalGameTime: GAME_MINUTES, shiftCount: STANDARD_SHIFT_COUNT, shiftMinutes: SHIFT_MINUTES };
+  }
+  const shiftCount   = tournamentShiftMode === 'long' ? 3 : 5;
+  const shiftMinutes = TOURNAMENT_GAME_MINUTES / shiftCount;
+  return { totalGameTime: TOURNAMENT_GAME_MINUTES, shiftCount, shiftMinutes };
+}
 
-/* Returns { gameMinutes, shiftMinutes, shiftCount } for the given game type */
-function timingsFor(gameType){
-  if (gameType === 'tournament') return { gameMinutes: TOURNAMENT_GAME_MINUTES, shiftMinutes: TOURNAMENT_SHIFT_MINUTES, shiftCount: TOURNAMENT_SHIFT_COUNT };
-  return { gameMinutes: GAME_MINUTES, shiftMinutes: SHIFT_MINUTES, shiftCount: STANDARD_SHIFT_COUNT };
+/* Format a possibly-fractional minute value as "M min" or "M:SS min" */
+function fmtShiftDur(mins) {
+  const whole = Math.floor(mins);
+  const secs  = Math.round((mins - whole) * 60);
+  return secs === 0 ? whole + ' min' : whole + ':' + String(secs).padStart(2, '0') + ' min';
 }
 
 /* Mobile breakpoint — phones use dropdowns, tablets/desktop keep drag/drop */
@@ -524,8 +543,8 @@ function defaultState(){
   return {
     currentTeam: '3_4',
     teams: {
-      '3_4': { opponent:'', date:'', gameType:'standard', roster:[], shifts: makeEmptyShifts('3_4') },
-      '5_6': { opponent:'', date:'', gameType:'standard', roster:[], shifts: makeEmptyShifts('5_6') }
+      '3_4': { opponent:'', date:'', gameType:'standard', tournamentShiftMode:'short', roster:[], shifts: makeEmptyShifts('3_4') },
+      '5_6': { opponent:'', date:'', gameType:'standard', tournamentShiftMode:'short', roster:[], shifts: makeEmptyShifts('5_6') }
     }
   };
 }
@@ -540,8 +559,9 @@ function validateState(s){
     const T = s.teams[t];
     if (typeof T.opponent !== 'string' || typeof T.date !== 'string') return false;
     if (!Array.isArray(T.roster)) return false;
-    const gType = T.gameType || 'standard';
-    if (!Array.isArray(T.shifts) || T.shifts.length !== shiftCountFor(gType)) return false;
+    const gType     = T.gameType || 'standard';
+    const gShiftMode = T.tournamentShiftMode || 'short';
+    if (!Array.isArray(T.shifts) || T.shifts.length !== getShiftConfig(gType, gShiftMode).shiftCount) return false;
     for (const r of T.roster){
       if (!r || typeof r.id !== 'string' || typeof r.name !== 'string') return false;
       if (!['attack','middie','defense'].includes(r.category)) return false;
@@ -568,8 +588,11 @@ function loadState(){
     const obj = JSON.parse(raw);
     if (obj && obj.v === SCHEMA && validateState(obj.state)) {
       _localUpdatedAt = typeof obj.updatedAt === 'number' ? obj.updatedAt : 0;
-      /* Normalize missing gameType for backward compatibility with saved games */
-      for (const t of ['3_4','5_6']){ if (!obj.state.teams[t].gameType) obj.state.teams[t].gameType = 'standard'; }
+      /* Normalize missing fields for backward compatibility with saved games */
+      for (const t of ['3_4','5_6']){
+        if (!obj.state.teams[t].gameType)           obj.state.teams[t].gameType           = 'standard';
+        if (!obj.state.teams[t].tournamentShiftMode) obj.state.teams[t].tournamentShiftMode = 'short';
+      }
       return obj.state;
     }
   } catch(e){}
@@ -714,9 +737,10 @@ function cloudOnStateSnapshot(snap){
 function cloudOnTemplateSnapshot(team, snap){
   if (!snap.exists){ cloud.tplCache[team] = null; return; }
   const data = snap.data() || {};
-  const tplGameType = data.gameType || 'standard';
-  if (data.v !== SCHEMA || !Array.isArray(data.roster) || !Array.isArray(data.shifts) || data.shifts.length !== shiftCountFor(tplGameType)) return;
-  cloud.tplCache[team] = { v:data.v, roster:data.roster, shifts:data.shifts, gameType:tplGameType };
+  const tplGameType      = data.gameType || 'standard';
+  const tplShiftMode     = data.tournamentShiftMode || 'short';
+  if (data.v !== SCHEMA || !Array.isArray(data.roster) || !Array.isArray(data.shifts) || data.shifts.length !== getShiftConfig(tplGameType, tplShiftMode).shiftCount) return;
+  cloud.tplCache[team] = { v:data.v, roster:data.roster, shifts:data.shifts, gameType:tplGameType, tournamentShiftMode:tplShiftMode };
   try {
     localStorage.setItem(TEMPLATE_KEY(team), JSON.stringify({ v:data.v, roster:data.roster, shifts:data.shifts }));
   } catch(e){}
@@ -749,11 +773,12 @@ function cloudWriteTemplate(team, tpl){
   const payload = {
     v: SCHEMA,
     gameType: tpl.gameType || 'standard',
+    tournamentShiftMode: tpl.tournamentShiftMode || 'short',
     roster: JSON.parse(JSON.stringify(tpl.roster)),
     shifts: JSON.parse(JSON.stringify(tpl.shifts)),
     updatedAt: Date.now()
   };
-  cloud.lastWroteTplJSON[team] = JSON.stringify({gameType:payload.gameType, roster:payload.roster, shifts:payload.shifts});
+  cloud.lastWroteTplJSON[team] = JSON.stringify({gameType:payload.gameType, tournamentShiftMode:payload.tournamentShiftMode, roster:payload.roster, shifts:payload.shifts});
   return cloud.tplDocs[team].set(payload).then(() => true).catch(err => {
     console.error('[sync] template write failed', team, err);
     return false;
@@ -766,8 +791,9 @@ function cloudGetTemplate(team){
     const raw = localStorage.getItem(TEMPLATE_KEY(team));
     if (!raw) return null;
     const tpl = JSON.parse(raw);
-    const tplGameType = (tpl && tpl.gameType) || 'standard';
-    if (!tpl || tpl.v !== SCHEMA || !Array.isArray(tpl.roster) || !Array.isArray(tpl.shifts) || tpl.shifts.length !== shiftCountFor(tplGameType)) return null;
+    const tplGameType  = (tpl && tpl.gameType)           || 'standard';
+    const tplShiftMode = (tpl && tpl.tournamentShiftMode) || 'short';
+    if (!tpl || tpl.v !== SCHEMA || !Array.isArray(tpl.roster) || !Array.isArray(tpl.shifts) || tpl.shifts.length !== getShiftConfig(tplGameType, tplShiftMode).shiftCount) return null;
     return tpl;
   } catch(e){ return null; }
 }
@@ -852,13 +878,13 @@ function removePlayerFromRoster(playerId){
 function clearRoster(){
   const T = currentTeamState();
   T.roster = [];
-  T.shifts = makeEmptyShifts(state.currentTeam, shiftCountFor(T.gameType || 'standard'));
+  T.shifts = makeEmptyShifts(state.currentTeam, getShiftConfig(T.gameType || 'standard', T.tournamentShiftMode || 'short').shiftCount);
 }
 
 /* ── NEW: Clear all shift slot assignments, keep roster intact ── */
 function clearShifts(){
   const T = currentTeamState();
-  T.shifts = makeEmptyShifts(state.currentTeam, shiftCountFor(T.gameType || 'standard'));
+  T.shifts = makeEmptyShifts(state.currentTeam, getShiftConfig(T.gameType || 'standard', T.tournamentShiftMode || 'short').shiftCount);
   shiftClipboard = null;
 }
 
@@ -971,12 +997,20 @@ function renderTabs(){
 
 function renderMeta(){
   const T = currentTeamState();
-  const oppEl  = document.getElementById('opp-input');
-  const dateEl = document.getElementById('date-input');
-  const typeEl = document.getElementById('game-type-select');
-  if (document.activeElement !== oppEl)  oppEl.value  = T.opponent || '';
-  if (document.activeElement !== dateEl) dateEl.value = T.date || '';
+  const oppEl       = document.getElementById('opp-input');
+  const dateEl      = document.getElementById('date-input');
+  const typeEl      = document.getElementById('game-type-select');
+  const shiftField  = document.getElementById('shift-mode-field');
+  const shiftModeEl = document.getElementById('shift-mode-select');
+  const isTournament = (T.gameType || 'standard') === 'tournament';
+
+  if (document.activeElement !== oppEl)       oppEl.value       = T.opponent || '';
+  if (document.activeElement !== dateEl)      dateEl.value      = T.date || '';
   if (typeEl && document.activeElement !== typeEl) typeEl.value = T.gameType || 'standard';
+
+  /* Show the Shift Structure picker only in Tournament mode */
+  if (shiftField) shiftField.style.display = isTournament ? '' : 'none';
+  if (shiftModeEl && document.activeElement !== shiftModeEl) shiftModeEl.value = T.tournamentShiftMode || 'short';
 }
 
 function renderShifts(){
@@ -985,12 +1019,16 @@ function renderShifts(){
   const shifts = T.shifts;
   /* Tournament mode uses T-badge and sequential shift numbers; standard uses Q1-Q4 */
   const isTournament = (T.gameType || 'standard') === 'tournament';
+  /* Derive config once so shift duration label is accurate for both short and long modes */
+  const cfg = getShiftConfig(T.gameType || 'standard', T.tournamentShiftMode || 'short');
   const canPaste = !!(shiftClipboard && shiftClipboard.team === state.currentTeam);
   let html = '';
   for (let si=0; si<shifts.length; si++){
     const shift = shifts[si];
-    const badgeText  = isTournament ? 'T'                          : 'Q' + (Math.floor(si/2) + 1);
-    const shiftTitle = isTournament ? 'Shift ' + (si+1)           : 'Shift ' + ((si % 2) + 1);
+    const badgeText  = isTournament ? 'T'           : 'Q' + (Math.floor(si/2) + 1);
+    const shiftTitle = isTournament
+      ? 'Shift ' + (si+1) + ' <span class="shift-dur">· ' + fmtShiftDur(cfg.shiftMinutes) + '</span>'
+      : 'Shift ' + ((si % 2) + 1);
     const filled = countFilled(shift);
     const total = countTotal();
     const complete = filled === total;
@@ -1175,8 +1213,8 @@ function renderTimePlayed(){
   const container = document.getElementById('time-played-area');
   if (!container) return;
   const counts = calculateTimePlayed();
-  /* Use timing values derived from game type so Tournament mode reflects 25-min / 5-min / 5-shift totals */
-  const timings = timingsFor(T.gameType || 'standard');
+  /* All timing values derive from getShiftConfig so Tournament short/long modes are both handled correctly */
+  const cfg = getShiftConfig(T.gameType || 'standard', T.tournamentShiftMode || 'short');
 
   const players = T.roster.slice().sort((a,b) => {
     const diff = (counts[b.id]||0) - (counts[a.id]||0);
@@ -1187,7 +1225,7 @@ function renderTimePlayed(){
   let html = '';
   html += '<div class="tp-head">';
   html += '<h3>Time Played</h3>';
-  html += '<span class="tp-sub">' + timings.gameMinutes + ' min game · ~' + timings.shiftMinutes + ' min/shift · ' + timings.shiftCount + ' shifts</span>';
+  html += '<span class="tp-sub">' + cfg.totalGameTime + ' min game · ~' + fmtShiftDur(cfg.shiftMinutes) + '/shift · ' + cfg.shiftCount + ' shifts</span>';
   html += '</div>';
 
   if (players.length === 0){
@@ -1202,14 +1240,14 @@ function renderTimePlayed(){
   let totalMins = 0;
   players.forEach(p => {
     const shifts = counts[p.id] || 0;
-    const mins = shifts * timings.shiftMinutes;
+    const mins = Math.round(shifts * cfg.shiftMinutes * 10) / 10;
     totalShifts += shifts;
     totalMins   += mins;
     html += '<div class="tp-row tp-' + p.category + '">';
     html += '<span class="tp-name">' + esc(p.name) + '</span>';
     html += '<span class="tp-pos">' + CAT_LABEL[p.category] + '</span>';
-    html += '<span class="tp-shifts">' + shifts + '/' + timings.shiftCount + '</span>';
-    html += '<span class="tp-mins">' + mins + ' min</span>';
+    html += '<span class="tp-shifts">' + shifts + '/' + cfg.shiftCount + '</span>';
+    html += '<span class="tp-mins">' + (Number.isInteger(mins) ? mins : mins.toFixed(1)) + ' min</span>';
     html += '</div>';
   });
   html += '</div>';
@@ -1501,30 +1539,53 @@ document.getElementById('date-input').addEventListener('change', (e) => {
   persist();
 });
 
+/* Shared resize helper — used by both the game-type and shift-mode change handlers */
+function resizeShiftsTo(T, newCount, cancelLabel) {
+  const oldCount = T.shifts.length;
+  if (oldCount === newCount) return true;
+  if (newCount < oldCount) {
+    const sd = currentSlotDef();
+    const hasData = T.shifts.slice(newCount).some(shift =>
+      POSITIONS.some(p => sd[p].some(k => shift[p][k] !== null))
+    );
+    if (hasData && !confirm('Switching to ' + cancelLabel + ' removes shifts ' + (newCount+1) + '–' + oldCount + ', which have players assigned. Continue?')){
+      return false;
+    }
+    T.shifts = T.shifts.slice(0, newCount);
+  } else {
+    /* Expanding — append blank shifts */
+    const blank = makeEmptyShifts(state.currentTeam, 1)[0];
+    while (T.shifts.length < newCount) T.shifts.push(JSON.parse(JSON.stringify(blank)));
+  }
+  return true;
+}
+
 document.getElementById('game-type-select').addEventListener('change', (e) => {
   const newType = e.target.value;
   const T = currentTeamState();
-  const oldCount = T.shifts.length;
-  const newCount = shiftCountFor(newType);
-  if (oldCount !== newCount) {
-    if (newCount < oldCount) {
-      /* Check whether any shifts being removed already have players in them */
-      const sd = currentSlotDef();
-      const hasData = T.shifts.slice(newCount).some(shift =>
-        POSITIONS.some(p => sd[p].some(k => shift[p][k] !== null))
-      );
-      if (hasData && !confirm('Switching to Tournament mode removes shifts ' + (newCount+1) + '–' + oldCount + ', which have players assigned. Continue?')){
-        e.target.value = T.gameType || 'standard';
-        return;
-      }
-      T.shifts = T.shifts.slice(0, newCount);
-    } else {
-      /* Expanding to more shifts — append blank shifts */
-      const blank = makeEmptyShifts(state.currentTeam, 1)[0];
-      while (T.shifts.length < newCount) T.shifts.push(JSON.parse(JSON.stringify(blank)));
-    }
+  /* When entering tournament mode keep the existing tournamentShiftMode (default 'short') */
+  const shiftMode = T.tournamentShiftMode || 'short';
+  const newCount = getShiftConfig(newType, shiftMode).shiftCount;
+  if (!resizeShiftsTo(T, newCount, newType === 'tournament' ? 'Tournament' : 'Standard')) {
+    e.target.value = T.gameType || 'standard';
+    return;
   }
   T.gameType = newType;
+  shiftClipboard = null;
+  persist();
+  render();
+});
+
+document.getElementById('shift-mode-select').addEventListener('change', (e) => {
+  const newMode = e.target.value;
+  const T = currentTeamState();
+  const newCount = getShiftConfig('tournament', newMode).shiftCount;
+  const modeLabel = newMode === 'long' ? 'Long Shifts (3)' : 'Short Shifts (5)';
+  if (!resizeShiftsTo(T, newCount, modeLabel)) {
+    e.target.value = T.tournamentShiftMode || 'short';
+    return;
+  }
+  T.tournamentShiftMode = newMode;
   shiftClipboard = null;
   persist();
   render();
@@ -1535,6 +1596,7 @@ document.getElementById('save-btn').addEventListener('click', () => {
   const tpl = {
     v: SCHEMA,
     gameType: T.gameType || 'standard',
+    tournamentShiftMode: T.tournamentShiftMode || 'short',
     roster: JSON.parse(JSON.stringify(T.roster)),
     shifts: JSON.parse(JSON.stringify(T.shifts))
   };
@@ -1547,7 +1609,7 @@ document.getElementById('save-btn').addEventListener('click', () => {
   if (cloud.enabled){
     cloudWriteTemplate(state.currentTeam, tpl).then(ok => {
       if (ok){
-        cloud.tplCache[state.currentTeam] = { v:tpl.v, gameType:tpl.gameType || 'standard', roster:tpl.roster, shifts:tpl.shifts };
+        cloud.tplCache[state.currentTeam] = { v:tpl.v, gameType:tpl.gameType || 'standard', tournamentShiftMode:tpl.tournamentShiftMode || 'short', roster:tpl.roster, shifts:tpl.shifts };
         toast('Template saved (synced) · ' + teamLabel);
       } else if (localOK){
         toast('Template saved locally · ' + teamLabel);
@@ -1575,7 +1637,8 @@ document.getElementById('load-btn').addEventListener('click', () => {
   }
   if (!confirm('Replace current roster and shifts with saved template?\n\nOpponent and date will be kept.')) return;
   const T = currentTeamState();
-  T.gameType = tpl.gameType || 'standard';
+  T.gameType            = tpl.gameType            || 'standard';
+  T.tournamentShiftMode = tpl.tournamentShiftMode  || 'short';
   T.roster = JSON.parse(JSON.stringify(tpl.roster));
   T.shifts = JSON.parse(JSON.stringify(tpl.shifts));
   persist();
@@ -1645,14 +1708,15 @@ function buildPrintHTML(){
   html += '</div>';
 
   /* Tournament mode alters how shifts are labeled and how time-played minutes are calculated */
+  /* Tournament mode alters shift labels and time-played calculations for both short and long modes */
   const isTournament = (T.gameType || 'standard') === 'tournament';
-  const printTimings = timingsFor(T.gameType || 'standard');
+  const printCfg = getShiftConfig(T.gameType || 'standard', T.tournamentShiftMode || 'short');
 
   html += '<div class="print-grid">';
   for (let si=0; si<T.shifts.length; si++){
     const shift = T.shifts[si];
-    const printBadge    = isTournament ? 'T'                          : 'Q' + (Math.floor(si/2) + 1);
-    const printShiftNum = isTournament ? 'Shift ' + (si+1)           : 'Shift ' + ((si % 2) + 1);
+    const printBadge    = isTournament ? 'T'        : 'Q' + (Math.floor(si/2) + 1);
+    const printShiftNum = isTournament ? 'Shift ' + (si+1) : 'Shift ' + ((si % 2) + 1);
     html += '<div class="print-shift">';
     html += '<div class="print-shift-head">';
     html += '<span class="print-q">'         + printBadge    + '</span>';
@@ -1682,19 +1746,19 @@ function buildPrintHTML(){
       return a.name.localeCompare(b.name);
     });
     html += '<div class="print-tp">';
-    html += '<div class="print-tp-title">Time Played · ' + printTimings.gameMinutes + ' min game · ~' + printTimings.shiftMinutes + ' min/shift</div>';
+    html += '<div class="print-tp-title">Time Played · ' + printCfg.totalGameTime + ' min game · ~' + fmtShiftDur(printCfg.shiftMinutes) + '/shift</div>';
     html += '<table class="print-tp-table">';
     html += '<thead><tr><th>Player</th><th>Pos</th><th style="text-align:center">Shifts</th><th style="text-align:right">Minutes</th></tr></thead>';
     html += '<tbody>';
     rows.forEach(p => {
       const s = counts[p.id] || 0;
-      const m = s * printTimings.shiftMinutes;
+      const m = Math.round(s * printCfg.shiftMinutes * 10) / 10;
       const posCls = p.category === 'attack' ? 'tp-p-atk' : p.category === 'middie' ? 'tp-p-mid' : 'tp-p-def';
       html += '<tr>';
       html += '<td>' + esc(p.name) + '</td>';
       html += '<td class="' + posCls + '"><strong>' + CAT_LABEL[p.category] + '</strong></td>';
-      html += '<td class="tp-c">' + s + '/' + printTimings.shiftCount + '</td>';
-      html += '<td class="tp-m">' + m + ' min</td>';
+      html += '<td class="tp-c">' + s + '/' + printCfg.shiftCount + '</td>';
+      html += '<td class="tp-m">' + (Number.isInteger(m) ? m : m.toFixed(1)) + ' min</td>';
       html += '</tr>';
     });
     html += '</tbody></table>';
