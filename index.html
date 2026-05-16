@@ -748,11 +748,12 @@ function cloudWriteTemplate(team, tpl){
   }
   const payload = {
     v: SCHEMA,
+    gameType: tpl.gameType || 'standard',
     roster: JSON.parse(JSON.stringify(tpl.roster)),
     shifts: JSON.parse(JSON.stringify(tpl.shifts)),
     updatedAt: Date.now()
   };
-  cloud.lastWroteTplJSON[team] = JSON.stringify({roster:payload.roster, shifts:payload.shifts});
+  cloud.lastWroteTplJSON[team] = JSON.stringify({gameType:payload.gameType, roster:payload.roster, shifts:payload.shifts});
   return cloud.tplDocs[team].set(payload).then(() => true).catch(err => {
     console.error('[sync] template write failed', team, err);
     return false;
@@ -1546,7 +1547,7 @@ document.getElementById('save-btn').addEventListener('click', () => {
   if (cloud.enabled){
     cloudWriteTemplate(state.currentTeam, tpl).then(ok => {
       if (ok){
-        cloud.tplCache[state.currentTeam] = { v:tpl.v, roster:tpl.roster, shifts:tpl.shifts };
+        cloud.tplCache[state.currentTeam] = { v:tpl.v, gameType:tpl.gameType || 'standard', roster:tpl.roster, shifts:tpl.shifts };
         toast('Template saved (synced) · ' + teamLabel);
       } else if (localOK){
         toast('Template saved locally · ' + teamLabel);
